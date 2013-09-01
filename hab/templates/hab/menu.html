@@ -1,0 +1,12 @@
+<ul class="nav nav-tabs">
+    {% url 'templates-list' as templates %}
+    {% url 'assignments-list' as tasks %}
+    {% url 'users-list' as users %}
+    <li{% ifequal request.path tasks %} class="active"{% endifequal %}><a href="{{ tasks }}">Tasks</a></li>
+    <li{% ifequal request.path templates %} class="active"{% endifequal %}><a href="{{ templates }}">Templates</a></li>
+    <li{% ifequal request.path users %} class="active"{% endifequal %}><a href="{{ users }}">Users</a></li>
+    {% for view in views %}
+    {% url 'assignment-view-list' slug=view.slug as href %}
+    <li{% ifequal request.path href %} class="active"{% endifequal %}><a href="{{ href }}">{{ view.name }}</a></li>
+    {% endfor %}
+</ul>

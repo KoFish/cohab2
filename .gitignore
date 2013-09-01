@@ -1,0 +1,5 @@
+environment/
+collected_static/
+*.pyc
+db.sqlite
+*.zip

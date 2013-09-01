@@ -1,0 +1,9 @@
+{% extends "hab/base.html" %}
+
+{% block header %}<h1>Templates</h1>{% endblock %}
+
+{% block content %}
+{% for template in object_list %}
+{% include "hab/assignmenttemplate_detail.html" %}
+{% endfor %}
+{% endblock %}

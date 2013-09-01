@@ -1,0 +1,52 @@
+{% load mathfilters %}<article class="assignment" id="assignment-{{ assignment.id }}" data-id="{{ assignment.id }}">
+    <header>
+        {% if assignment.assignee %}
+            {% ifequal assignment.assignee user %}
+                <div class="owner-indicator owns"></div>
+            {% endifequal %}
+        {% else %}
+            {% ifequal assignment.owner user %}
+                <div class="owner-indicator owns"></div>
+            {% else %}
+                <div class="owner-indicator"></div>
+            {% endifequal %}
+        {% endif %}
+        {% with countdown=assignment.countdown %}
+        <h4>{{ assignment }}
+            {% ifnotequal countdown None %}
+                {% if countdown > 0 %}
+                    <small>{{ countdown }} day{{ countdown|pluralize }} left</small>
+                {% else %}
+                    {% if countdown < 0 %}
+                        <small class="text-danger">{{ countdown|abs }} day{{ countdown|abs|pluralize }} overdue.</small>
+                    {% else %}
+                        <small class="text-info">Today</small>
+                    {% endif %}
+                {% endif %}
+            {% endifnotequal %}
+            {% if assignment.assigned_to %}
+                <small class="assignee">Assigned to {% include "hab/user_link.html" with user=assignment.assigned_to %}</small>
+            {% endif %}
+        </h4>
+        {% endwith %}
+    </header>
+    <p class="controls">
+        {% if assignment.completed %}
+        <button type="button" class="clear btn btn-xs">Clear</button>
+        {% else %}
+        <button type="button" class="finish btn btn-success btn-xs">Finish</button>
+        {% endif %}
+    </p>
+    <dl class="details hide dl-horizontal">
+        {% if assignment.assignee %}
+        <dt>Assigned to</dt> <dd>{{ assignment.assignee }}</dd>
+        {% endif %}
+
+        <dt>Importance</dt> <dd>{{ assignment.importance }}</dd>
+        {% if assignment.completed %}
+        <dt>Completed</dt> <dd><time datetime="{{ assignment.completed|date:'c' }}">{{ assignment.completed }}</time></dd>
+        {% else %}
+        <dt>Deadline</dt> <dd><time datetime="{{ assignment.deadline|date:'c' }}">{{ assignment.deadline }}</time></dd>
+        {% endif %}
+    </dl>
+</article>

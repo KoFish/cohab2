@@ -1,0 +1,10 @@
+{% load bootstrap %}
+<form class="form" role="form" method="POST" action="{% if form_url %}{{ form_url }}{% else %}{% url "assignment-view-add" slug=slug %}{% endif %}">
+    {% csrf_token %}
+    {{ form.mine|bootstrap }}
+    {{ form.subject|bootstrap }}
+    {{ form.importance|bootstrap }}
+    {{ form.deadline|bootstrap }}
+    <button type="reset" class="btn btn-default">Cancel</button>
+    <button type="submit" class="btn btn-primary">Create assignment</button>
+</form>

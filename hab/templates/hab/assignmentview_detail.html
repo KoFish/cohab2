@@ -1,0 +1,20 @@
+{% extends "hab/base.html" %}
+
+{% block title %}View{% endblock %}
+
+{% block header %}<h1>View</h1>{% endblock %}
+
+{% block sidebar %}
+<button id="add-view-assignment" href="{% url 'assignment-view-add' slug=slug %}" type="button" class="btn">Add new assignment</button>
+{% endblock %}
+
+{% block content %}
+{% for assignment in assignments %}
+    {% include "hab/assignment_detail.html" %}
+{% endfor %}
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+{% include "hab/create_view_assignment_modal.html" %}
+{% endblock %}

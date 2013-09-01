@@ -1,0 +1,17 @@
+{% load bootstrap %}
+<form class="form" role="form" method="POST" action="{% if form_url %}{{ form_url }}{% else %}{% url "add-assignment" %}{% endif %}">
+    {% csrf_token %}
+    {{ form.mine|bootstrap }}
+    {{ form.verb|bootstrap }}
+    {{ form.subject|bootstrap }}
+    {{ form.owner|bootstrap }}
+    {{ form.importance|bootstrap }}
+    {{ form.deadline|bootstrap }}
+    <fieldset id="assign-repeat">
+    {{ form.repeat|bootstrap }}
+    {{ form.repeat_delay|bootstrap }}
+    {{ form.allowed_owners|bootstrap }}
+    </fieldset>
+    <button type="reset" class="btn btn-default">Cancel</button>
+    <button type="submit" class="btn btn-primary">Create assignment</button>
+</form>

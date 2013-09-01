@@ -1,0 +1,44 @@
+.signin-container {
+    max-width: 330px;
+    padding: 15px;
+    margin: 0 auto;
+}
+
+.hide {
+    display: none;
+}
+
+.assignment {
+    position: relative;
+    min-height: 30px;
+}
+
+.assignment > header {
+    margin-left: 50px;
+}
+
+.assignment .controls {
+    position: absolute;
+    top: 0;
+}
+
+.owner-indicator {
+    width: 6px;
+    height: 6px;
+    background: #ccc;
+    position: absolute;
+    left: -8px;
+    top: 9px;
+    border-radius: 2px;
+}
+.owner-indicator.owns {
+    background: #acf;
+}
+
+#main-nav {
+    padding-bottom: 9px;
+}
+
+#auth-box {
+    float: right;
+}
