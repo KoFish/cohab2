@@ -1,17 +1,27 @@
 {% load bootstrap %}
 <form class="form" role="form" method="POST" action="{% if form_url %}{{ form_url }}{% else %}{% url "add-assignment" %}{% endif %}">
     {% csrf_token %}
-    {{ form.mine|bootstrap }}
-    {{ form.verb|bootstrap }}
-    {{ form.subject|bootstrap }}
+    <div class="form-group" style="display: inline-block">
+        <label for="id_verb" class="control-label">Verb</label>
+        <div>
+            <input type="text" name="verb" maxlength="50" class="form-control" id="id_verb">
+        </div>
+    </div>
+    <div class="form-group" style="display: inline-block">
+        <label for="id_subject" class="control-label">Subject</label>
+        <div>
+            <input type="text" name="subject" maxlength="50" class="form-control" id="id_subject">
+        </div>
+    </div>
     {{ form.owner|bootstrap }}
     {{ form.importance|bootstrap }}
     {{ form.deadline|bootstrap }}
-    <fieldset id="assign-repeat">
+    <fieldset id="assign-repeat" class="disabled">
     {{ form.repeat|bootstrap }}
     {{ form.repeat_delay|bootstrap }}
     {{ form.allowed_owners|bootstrap }}
     </fieldset>
+    {{ form.mine|bootstrap }}
     <button type="reset" class="btn btn-default">Cancel</button>
     <button type="submit" class="btn btn-primary">Create assignment</button>
 </form>

@@ -38,15 +38,41 @@
         {% endif %}
     </p>
     <dl class="details hide dl-horizontal">
-        {% if assignment.assignee %}
-        <dt>Assigned to</dt> <dd>{{ assignment.assignee }}</dd>
+        <dt>Assigned to</dt> <dd class="assignee">{{ assignment.assignee|default:"None" }}</dd>
+
+        {% if not assignment.completed %}
+        <dt>Assign task to</dt>
+        <dd>
+            <select name="assign" id="assign-{{ assignment.id }}" class="assign-task">
+                <option value="no">---</option>
+            {% for u in users %}
+                <option value="{{ u.username }}"{% ifequal u assignment.assignee %} selected{% endifequal %}>{{ u.username }}</option>
+            {% endfor %}
+            </select>
+        </dd>
         {% endif %}
 
-        <dt>Importance</dt> <dd>{{ assignment.importance }}</dd>
+        <dt>Importance</dt> <dd><span class="grade">{{ assignment.importance }}</span></dd>
         {% if assignment.completed %}
         <dt>Completed</dt> <dd><time datetime="{{ assignment.completed|date:'c' }}">{{ assignment.completed }}</time></dd>
+        {% if not assignment.cleared %}
+        {% endif %}
+        <dt>Reopen</dt> <dd><button type="button" class="reopen btn btn-xs" href="#">Reopen</button></dd>
         {% else %}
-        <dt>Deadline</dt> <dd><time datetime="{{ assignment.deadline|date:'c' }}">{{ assignment.deadline }}</time></dd>
+        {% if assignment.deadline %}
+        <dt>Deadline</dt> <dd><time class="deadline" datetime="{{ assignment.deadline|date:'c' }}">{{ assignment.deadline }}</time></dd>
+        <dt>Suspend</dt>
+        <dd>
+            <select name="suspend" id="suspend-{{ assignment.id }}" class="suspend-task">
+                <option value="0"></option>
+                <option value="1">1 day</option>
+                <option value="2">2 day</option>
+                <option value="3">3 day</option>
+                <option value="7">1 week</option>
+                <option value="30">1 month</option>
+            </select>
+        </dd>
+        {% endif %}
         {% endif %}
     </dl>
 </article>

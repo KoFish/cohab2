@@ -20,6 +20,13 @@ from django.core.serializers import json as json_serializer, serialize
 from django.shortcuts import render_to_response
 from django.template import RequestContext
 
+def make_status(status, **kw):
+    d = {'status': status}
+    d.update(dict((k,v) for k,v in kw.iteritems() if v is not None))
+    return d
+
+make_failure = lambda msg, **kw: make_status('failed', message=msg, **kw)
+make_success = lambda **kw: make_status('success', **kw)
 
 class JsonResponse(HttpResponse):
     def __init__(self, object):
@@ -38,11 +45,11 @@ class LoginRequiredMixin(object):
 def ajax_object_action(model):
     def outer(f):
         def inner(request, pk, *a, **kw):
-            if request.method == 'POST' or 'ajax' in request.GET:
+            if request.method == 'POST' or request.is_ajax() or 'ajax' in request.GET:
                 try:
                     obj = model.objects.get(pk=pk)
                 except model.DoesNotExist:
-                    return JsonResponse({'status': 'failed', 'message': ('No {} with that id (' + pk + ')').format(str(model.__name__))})
+                    return JsonResponse(make_failure('No {} with that id ({})'.format(str(model.__name__), pk)))
                 else:
                     return f(request, obj, *a, **kw)
             else:
@@ -72,11 +79,15 @@ def get(request, key):
 
     def get_verbs(request):
         q = request.GET.get('q')
+        nocount = 'nocount' in request.GET
         query = Verb.objects
         if q:
             query = query.filter(name__contains=q)
-        query = query.extra(select={'count': 'SELECT COUNT(*) FROM hab_assignment WHERE hab_assignment.verb_id = hab_verb.id AND hab_assignment.completed IS NULL'})
-        return {'verbs': list(set([(v.name, v.count) for v in query.all()]))}
+        if not nocount:
+            query = query.extra(select={'count': 'SELECT COUNT(*) FROM hab_assignment WHERE hab_assignment.verb_id = hab_verb.id AND hab_assignment.completed IS NULL'})
+            return {'verbs': list(set([(v.name, v.count) for v in query.all()]))}
+        else:
+            return {'verbs': list(set([v.name for v in query.all()]))}
 
     def get_subjects(request):
         asubjects = [a['subject'] for a in Assignment.objects.values('subject').all()]
@@ -88,10 +99,9 @@ def get(request, key):
             'subjects': get_subjects}
     if key in cmds:
         res = cmds[key](request)
-        res['status'] = 'success'
-        return JsonResponse(res)
+        return JsonResponse(make_success(**res))
     else:
-        return JsonResponse({'status': 'failed', 'message': 'No such value.'})
+        return JsonResponse(make_failure('No such value.'))
 
 
 @csrf_exempt
@@ -99,7 +109,8 @@ def get(request, key):
 @ajax_object_action(Assignment)
 def complete_assignment(request, obj):
     obj.complete(request)
-    return JsonResponse({'status': 'success'})
+    messages.info(request, 'Completed assignment {}'.format(obj))
+    return JsonResponse(make_success())
 
 
 @csrf_exempt
@@ -108,7 +119,20 @@ def complete_assignment(request, obj):
 def clear_assignment(request, obj):
     obj.cleared = True
     obj.save()
-    return JsonResponse({'status': 'success'})
+    return JsonResponse(make_success())
+
+
+@csrf_exempt
+@login_required
+@ajax_object_action(Assignment)
+def reopen_assignment(request, obj):
+    if obj.cleared:
+        return JsonResponse(make_failure('Not allowed to reopen cleared task'))
+    else:
+        obj.completed = None
+        obj.save()
+        return JsonResponse(make_success())
+
 
 
 @csrf_exempt
@@ -116,26 +140,33 @@ def clear_assignment(request, obj):
 @ajax_object_action(Assignment)
 def assign_assignment(request, obj):
     try:
-        if request.GET.get('to', None):
-            user = User.objects.get(username=request.GET.get('to'))
+        username = request.GET.get('to', None)
+        if username:
+            user = User.objects.get(username=username)
         else:
             user = request.user
     except User.DoesNotExist:
-        return JsonResponse({'status': 'failed', 'message': ("No user named {}".format(user))})
+        messages.danger(request, "Could not assign task to {}, no such user exists.".format(username));
+        return JsonResponse(make_failure("No user named {}".format(username)))
     else:
         obj.assignee = user
         obj.save()
-        return JsonResponse({'status': 'success'})
+        return JsonResponse(make_success())
 
 
 @csrf_exempt
 @login_required
-@ajax_object_action(AssignmentTemplate)
+@ajax_object_action(Assignment)
 def suspend_assignment(request, obj):
     try:
-        days = int(request.GET.get('days', '1'))
+        days = int(request.GET.get('days', '0'))
+        if obj.deadline and days and days > 0:
+            obj.deadline = obj.deadline + timedelta(days=days)
+            obj.save()
+        print obj
+        return JsonResponse(make_success(deadline=obj.deadline.strftime('%c'), days_left="{} days left".format(obj.countdown())));
     except ValueError:
-        return JsonResponse({'status': 'failed', 'message': '{} is not an integer'.format(request.GET.get('days'))})
+        return JsonResponse(make_failure('{} is not an integer'.format(request.GET.get('days'))))
 
 
 @csrf_exempt
@@ -143,7 +174,7 @@ def suspend_assignment(request, obj):
 @ajax_object_action(AssignmentTemplate)
 def instanciate_template(request, obj):
     obj.instanciate()
-    return JsonResponse({'status': 'success'})
+    return JsonResponse(make_success())
 
 
 @csrf_exempt
@@ -151,7 +182,7 @@ def instanciate_template(request, obj):
 @ajax_object_action(AssignmentTemplate)
 def remove_template(request, obj):
     obj.delete()
-    return JsonResponse({'status': 'success'})
+    return JsonResponse(make_success())
 
 class HabMixin(object):
     def get_context_data(self, *a, **kw):
@@ -236,7 +267,7 @@ class LoggedInAjaxRequiredMixin(object):
             if request.user.is_authenticated():
                 return super(LoggedInAjaxRequiredMixin, self).dispatch(request, *a, **kw)
             else:
-                return JsonResponse({'status': 'failed', 'message': 'You have to be logged in.'})
+                return JsonResponse(make_failure('You have to be logged in.'))
         raise Http404("You aren't allowed to fetch this without ajax.")
 
 
@@ -279,12 +310,10 @@ class CreateAssignmentView(LoggedInAjaxRequiredMixin, FormView):
         if data.get('mine', False):
             ass.assignee = self.request.user
         ass.save()
-        return JsonResponse({'status': 'success'})
+        return JsonResponse(make_success())
 
     def form_invalid(self, form):
-        return JsonResponse({
-            'status': 'failed',
-            'errors': form.errors})
+        return JsonResponse(make_failure('Errors in form', errors=form.errors))
 
     def get_success_url(self):
         return reverse('assignments-list')
@@ -319,12 +348,10 @@ class CreateViewAssignmentView(LoggedInAjaxRequiredMixin, FormView):
         if data.get('mine', False):
             ass.assignee = self.request.user
         ass.save()
-        return JsonResponse({'status': 'success'})
+        return JsonResponse(make_success())
 
     def form_invalid(self, form):
-        return JsonResponse({
-            'status': 'failed',
-            'errors': form.errors})
+        return JsonResponse(make_failure('Errors in form', errors=form.errors))
 
     def get_success_url(self):
         return reverse('assignments-list')

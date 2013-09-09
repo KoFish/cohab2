@@ -42,3 +42,88 @@
 #auth-box {
     float: right;
 }
+
+#logBox {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    margin: 5px 10px;
+    max-height: 150px;
+    width: 500px;
+    overflow-y: hidden;
+    background: rgba(134,134,134,0.3);
+    border-radius: 5px;
+    padding: 8px;
+}
+
+#logBox.sticky {
+    padding: 6px;
+    border: 1px solid #777;
+}
+
+#logBox.closing {
+    padding: 6px;
+    border: 1px dashed #777;
+}
+
+#logBox .log {
+    display: block;
+    font-family: monospace;
+}
+
+#logBox .close {
+    position: absolute;
+    top: 2px;
+    right: 5px;
+}
+
+#logBox .stick {
+    position: absolute;
+    top: 2px;
+    right: 30px;
+}
+
+.log .count {
+    padding: 3px;
+    margin: 2px;
+    background: #aaa;
+    color: white;
+    border-radius: 6px;
+    font-size: 0.7em;
+}
+
+.log .count.single {
+    background: none;
+    color: #aaa;
+}
+
+.grade-selector > span {
+    padding: 1px 3px;
+    margin: 0 2px;
+    background-color: #eee;
+    border-radius: 5px;
+    display: inline-block;
+    min-width: 25px;
+    cursor: pointer;
+    text-align: center;
+    border: 1px solid #fff;
+}
+
+.grade-selector > span:hover {
+    background-color: #fdfdfd;
+}
+
+.grade-selector > span.active {
+    border: 1px solid #292;
+}
+
+fieldset {
+    padding: 2px 13px;
+    border-radius: 3px;
+    border: 1px solid #ccc;
+}
+
+fieldset.disabled {
+    height: 48px;
+    overflow-y: hidden;
+}

@@ -1,31 +1,40 @@
-function slugify(s) {
-    //s = 'Was wäre daß® für ein + unnützer Tést?';
- 
-    var slug = s;
+jQuery(document).ready(function() {
+    $.logBox('init', {delay: 10000});
+});
 
-    slug = slug.toLowerCase();
-    slug = slug.replace(/\s+/g,'-');
- 
-    tr = { 
-        'ä':'a',
-        'å':'a',
-        'ö':'o',
-        '/':'-'
+(function($) {
+    var state = {};
+    function fetch_messages() {
+        $.get('/get/messages/')
+            .done(function(data) {
+                if (data.status === 'success' && 'messages' in data) {
+                    $(data.messages).each(function(i, d) {
+                        $.message(d.message, 'Message', d.extra_tags);
+                        $.log(arguments);
+                    })
+                }
+            })
+        state.fetch_message_timeout = setTimeout(fetch_messages, 5000);
     }
- 
-    for ( var key in tr )
-    {
-        slug = slug.replace(new RegExp(key, 'g'), tr[key]);
-    }
- 
-    slug = slug.replace(/[^a-zA-Z0-9\-]/g,'');
-    slug = slug.replace(/-+/g, '-');
- 
-    //alert(slug);
-    // return(s);
- 
-    return slug;
-}
+    $(document).ready(function() {
+        fetch_messages();
+    }); 
+    $.update_messages = function() {
+        if (state.fetch_message_timeout) {
+            clearTimeout(state.fetch_message_timeout);
+        }
+        fetch_messages();
+    };
+    $.message = function(body, title, level) {
+        var $not, msg = {text: body};
+        level = level || 'info';
+        msg['title'] = title || 'Message';
+        $not = $.pnotify(msg)
+        $.each(level.split(' '), function(i, l) {
+            $not.addClass('alert-' + l);
+        })
+    };
+})(jQuery);
 
 (function($) {
     $.reload = function(url) {
@@ -35,6 +44,7 @@ function slugify(s) {
                 $('#main').html(data).basic_setup();
             })
         $.fetch_verbs();
+        $.update_messages();
     }
     $.fetch_verbs = function () {
         var template = _.template($('#task-link').html()),
@@ -58,10 +68,12 @@ function slugify(s) {
             var $this = $(this);
 
             $this
+                .find('.grade').grade().end()
                 .find('#id_repeat').change(function() {
                     var checked = $(this).prop("checked");
                     $('#id_repeat_delay').prop("disabled", !checked);
                     $('#id_allowed_owners').prop("disabled", !checked);
+                    $('#assign-repeat').toggleClass('disabled', !checked);
                 }).end()
                 .find('#id_repeat_delay').prop("disabled", !$('#id_repeat').prop('checked')).end()
                 .find('#id_allowed_owners').prop("disabled", !$('#id_repeat').prop('checked')).end()
@@ -72,7 +84,6 @@ function slugify(s) {
                          .find('.help-block.error').remove().end();
                     $.post($form.attr('action'), $form.serialize())
                         .done(function(data) {
-                            //$.fetch_verbs();
                             if (data.status === 'success') {
                                 var verb = $form.find('#id_verb').val()
 
@@ -83,10 +94,10 @@ function slugify(s) {
                                 $modal.find('.modal-body').html('');
                                 $modal.modal('hide');
 
-                                console.log(url, start, end);
+                                $.log(url, start, end);
                                 if (start >= 0) {
                                     url = url.substring(0, start) + (end > 0 ? url.slice(end) : '')
-                                    console.log(url)
+                                    $.log(url)
                                     window.location.href = url;
                                 } else {
                                     $.reload();
@@ -100,8 +111,7 @@ function slugify(s) {
                                     }));
                                 }
                             } else {
-                                alert('Did not get a proper from the server.');
-                                console.log(data);
+                                $.log('Did not get a proper from the server.', data);
                             }
                         }
                     );
@@ -111,19 +121,87 @@ function slugify(s) {
                 }).end()
                 .find('#id_verb').typeahead({
                     name: 'verbs',
-                    prefetch: {url: '/get/verbs/',
+                    prefetch: {url: '/get/verbs/?nocount',
                                filter: function(resp) { return resp.verbs; }},
-                    remote: {url: '/get/verbs/?q=%QUERY',
+                    remote: {url: '/get/verbs/?nocount&q=%QUERY',
                              filter: function(resp) { return resp.verbs; }}
                 })
 
         })
     };
 
+    $.fn.setup_assignment = function() {
+        return $(this).each(function() {
+            var $ass = $(this),
+                id = $ass.data('id');
+            $ass.find('header').click(function() {
+                $ass.find('.details').toggleClass('hide');
+            });
+            $ass.find('.controls button.finish').click(function() {
+                    $.get('/task/'+id+'/complete')
+                        .done(function(data) {
+                            if (data.status === "success") { $.reload(); }
+                            else { $.message('Could not complete the task' + (data.message ? ': '+data.message : ''), 'Failed', 'warning'); }
+                        })
+                    }).end()
+                .find('.controls button.clear').click(function() {
+                    $.get('/task/'+id+'/clear')
+                        .done(function(data) {
+                            if (data.status === "success") { $.reload(); }
+                            else { $.message('Could not clear the task' + (data.message ? ': '+data.message : ''), 'Failed', 'warning'); }
+                        })
+                    });
+            $ass.find('.details button.reopen').click(function() {
+                $.get('/task/' + id + '/reopen')
+                    .done(function(data) {
+                        if (data.status === 'success') { $.reload(); }
+                        else { $.message(data.message, 'Could not reopen task', 'warning'); }
+                    });
+            });
+            $ass.find('.details .assign-task').change(function() {
+                var $select = $(this);
+                $select.find('option:selected').each(function() {
+                    var $sel = $(this),
+                        value = $sel.attr('value');
+                    if (value) {
+                        $.get('/task/' + id + '/assign' + (value === 'no' ? '' : ('?to='+value)))
+                        .done(function(data) {
+                            if (data.status === 'success') {
+                                $sel.closest('.details').find('.assignee').text(value === 'no' ? '' : value);
+                            } else {
+                                $.message(data.message, 'Failed assigning task!', 'warning');
+                            }
+                        });
+                    }
+                })
+            });
+            $ass.find('.details .suspend-task').change(function() {
+                var $select = $(this);
+                $select.find('option:selected').each(function() {
+                    var $sel = $(this),
+                        value = $sel.attr('value');
+                    if (value && value != '0') {
+                        $.get('/task/' + id + '/suspend?days=' + value)
+                        .done(function(data) {
+                            $select.val(0);
+                            if (data.status === 'success') {
+                                $sel.closest('.details').find('.deadline').text(data.deadline);
+                                $ass.find('header h4 small').html(data.days_left);
+                            } else {
+                                $.message(data.message, 'Failed suspend task!: ', 'warning');
+                            }
+                        });
+                    }
+                })
+            });
+        });
+    }
+
     $.fn.basic_setup = function() {
         return $(this).each(function() {
             var $this = $(this);
-            $this.find('#add-assignment')
+            $this.find('.grade').grade().end()
+                 .find('#add-assignment')
                      .click(function() {
                         var $modal = $("#createAssignmentModal");
                         $.get('/add/task/')
@@ -187,29 +265,7 @@ function slugify(s) {
                     });
                  }).end()
                  .find('.assignment').each(function() {
-                    var $ass = $(this),
-                        id = $ass.data('id');
-                    $ass.find('header').click(function() {
-                        $ass.find('.details').toggleClass('hide');
-                    });
-                    $ass.find('.controls')
-                            .find('button.finish').click(function() {
-                                $.post('/task/'+id+'/complete')
-                                    .done(function(data) {
-                                        if (data.status === "success") {
-                                            $.reload();
-                                        }
-                                    })
-                            }).end()
-                            .find('button.clear').click(function() {
-                                $.post('/task/'+id+'/clear')
-                                    .done(function(data) {
-                                        if (data.status === "success") {
-                                            $.reload();
-                                        }
-                                    })
-                            })
-                        .end();
+                    $(this).setup_assignment();
                  }).end()
                  .find('.template').each(function() {
                     var $template = $(this),
@@ -223,6 +279,8 @@ function slugify(s) {
                                 .done(function(data) {
                                     if (data.status === "success") {
                                         $.reload();
+                                    } else {
+                                        $.message(data.message, 'Failed', 'warning');
                                     }
                                 })
 
@@ -232,6 +290,8 @@ function slugify(s) {
                                 .done(function(data) {
                                     if (data.status === "success") {
                                         $.reload();
+                                    } else {
+                                        $.message(data.message, 'Failed', 'warning');
                                     }
                                 })
                         });
