@@ -9,7 +9,7 @@ DEBUG = True
 TEMPLATE_DEBUG = DEBUG
 
 ADMINS = (
-    # ('Your Name', 'your_email@example.com'),
+    ('Krister Svanlund', 'krister.svanlund@fripost.org'),
 )
 
 MANAGERS = ADMINS
@@ -174,7 +174,7 @@ CELERYBEAT_SCHEDULER = 'djcelery.schedulers.DatabaseScheduler'
 CELERYBEAT_SCHEDULE = {
     'update-assignments': {
         'task': 'hab.tasks.update_assignments',
-        'schedule': timedelta(minutes=1),
+        'schedule': timedelta(hours=30),
         'args': (),
     }
 }
