@@ -32,7 +32,11 @@
     border-radius: 2px;
 }
 .owner-indicator.owns {
-    background: #acf;
+    background: #57c;
+}
+
+.owner-indicator.assigned {
+    background: #5a3;
 }
 
 #main-nav {
@@ -40,6 +44,7 @@
 }
 
 #auth-box {
+    padding-top: 6px;
     float: right;
 }
 

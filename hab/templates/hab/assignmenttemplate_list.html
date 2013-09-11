@@ -5,5 +5,7 @@
 {% block content %}
 {% for template in object_list %}
 {% include "hab/assignmenttemplate_detail.html" %}
+{% empty %}
+<h4>No templates to show</h4>
 {% endfor %}
 {% endblock %}

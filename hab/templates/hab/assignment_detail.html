@@ -2,7 +2,7 @@
     <header>
         {% if assignment.assignee %}
             {% ifequal assignment.assignee user %}
-                <div class="owner-indicator owns"></div>
+                <div class="owner-indicator assigned"></div>
             {% endifequal %}
         {% else %}
             {% ifequal assignment.owner user %}
@@ -12,7 +12,7 @@
             {% endifequal %}
         {% endif %}
         {% with countdown=assignment.countdown %}
-        <h4>{{ assignment }}
+        <h4>{{ assignment }} <span class="grade">{{ assignment.importance }}</span>
             {% ifnotequal countdown None %}
                 {% if countdown > 0 %}
                     <small>{{ countdown }} day{{ countdown|pluralize }} left</small>
@@ -38,6 +38,7 @@
         {% endif %}
     </p>
     <dl class="details hide dl-horizontal">
+        <dt>Owned by</dt> <dd class="owner">{{ assignment.owner|default:"None" }}</dd>
         <dt>Assigned to</dt> <dd class="assignee">{{ assignment.assignee|default:"None" }}</dd>
 
         {% if not assignment.completed %}

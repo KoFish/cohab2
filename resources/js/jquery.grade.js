@@ -2,7 +2,7 @@
     $.fn.grade = function(options) {
         var settings = $.extend({
             symbols: ['!', '!!', '!!!', '!!!!'],
-            colors: ['#88f', '#8f8', '#f88', '#f33']
+            colors: ['#55d', '#5d5', '#d73', '#f33']
         }, options);
         return this.each(function(i, elem) {
             var $elem = $(elem);

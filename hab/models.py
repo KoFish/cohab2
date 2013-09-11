@@ -53,8 +53,11 @@ class Assignment(models.Model):
 
     template = models.ForeignKey('AssignmentTemplate', on_delete=models.SET_NULL, blank=True, null=True, related_name='assignments')
 
+    class Meta:
+        ordering = ('completed', 'deadline', 'importance')
+
     def __unicode__(self):
-        return u"{}".format(self.verb.format(self.verb.name, self.subject))
+        return u"{}".format(self.verb.format(self.verb.name.title(), self.subject.title()))
 
     def get_absolute_url(self):
         return reverse('get-assignment', args=[str(self.id)])

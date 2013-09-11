@@ -10,13 +10,13 @@ jQuery(document).ready(function() {
                 if (data.status === 'success' && 'messages' in data) {
                     $(data.messages).each(function(i, d) {
                         $.message(d.message, 'Message', d.extra_tags);
-                        $.log(arguments);
                     })
                 }
             })
         state.fetch_message_timeout = setTimeout(fetch_messages, 5000);
     }
     $(document).ready(function() {
+        $.pnotify.defaults.delay = 3000;
         fetch_messages();
     }); 
     $.update_messages = function() {
@@ -26,7 +26,10 @@ jQuery(document).ready(function() {
         fetch_messages();
     };
     $.message = function(body, title, level) {
-        var $not, msg = {text: body};
+        var $not,
+            msg = {nonblock: true,
+                   nonblock_opacity: .2,
+                   text: body};
         level = level || 'info';
         msg['title'] = title || 'Message';
         $not = $.pnotify(msg)
@@ -38,28 +41,42 @@ jQuery(document).ready(function() {
 
 (function($) {
     $.reload = function(url) {
-        url = url || window.location.href;
-        $.get(url + (url.indexOf('?') >= 0 ? '&' : '?') + 'strip')
+        url = url || window.location.pathname;
+        $.get(url + query_replace('strip'))
             .done(function (data) {
                 $('#main').html(data).basic_setup();
             })
         $.fetch_verbs();
         $.update_messages();
     }
+    $.sort_verbs = function () {
+        var sort = function(a, b) {
+            var av = $(a).data('sort'),
+                bv = $(b).data('sort');
+            return bv - av
+        }
+
+        var list = $('#sidebar > ul > li[data-sort]').get()
+        list.sort(sort);
+        for (var i = 0 ; i < list.length; i++) {
+            list[i].parentNode.appendChild(list[i]);
+        }
+    };
     $.fetch_verbs = function () {
         var template = _.template($('#task-link').html()),
-            $sidebar = $('#sidebar > ul');
+            $menu = $('#task-filter');
         $.get('/get/verbs')
         .done(function(data) {
             if ('verbs' in data) {
                 $.each(data.verbs, function(i, verb) {
-                    var link = $sidebar.find('#task-link-'+slugify(verb[0]));
+                    var link = $menu.find('#task-link-'+slugify(verb[0]));
                     if (link.size() > 0) {
                         link.replaceWith(template({'verb': verb[0], 'count': verb[1]}));
                     } else {
-                        $sidebar.append(template({'verb': verb[0], 'count': verb[1]}));
+                        $menu.append(template({'verb': verb[0], 'count': verb[1]}));
                     }
                 });
+                $.sort_verbs();
             }
         });
     };
@@ -85,20 +102,14 @@ jQuery(document).ready(function() {
                     $.post($form.attr('action'), $form.serialize())
                         .done(function(data) {
                             if (data.status === 'success') {
-                                var verb = $form.find('#id_verb').val()
-
-                                var url = window.location.href,
-                                    start = url.indexOf('?q=') >= 0 ? url.indexOf('?q=') : url.indexOf('&q='),
-                                    end = url.indexOf('&', start);
+                                var newverb = $form.find('#id_verb').val().toLowerCase(),
+                                    oldverb = query_get('q');
 
                                 $modal.find('.modal-body').html('');
                                 $modal.modal('hide');
 
-                                $.log(url, start, end);
-                                if (start >= 0) {
-                                    url = url.substring(0, start) + (end > 0 ? url.slice(end) : '')
-                                    $.log(url)
-                                    window.location.href = url;
+                                if (query_get('q') && (newverb !== oldverb)) {
+                                    window.location.href = window.location.pathname + query_replace('q', newverb);
                                 } else {
                                     $.reload();
                                 }
@@ -201,10 +212,12 @@ jQuery(document).ready(function() {
         return $(this).each(function() {
             var $this = $(this);
             $this.find('.grade').grade().end()
-                 .find('#add-assignment')
+                 .find('#add-assignment, #add-view-assignment')
                      .click(function() {
-                        var $modal = $("#createAssignmentModal");
-                        $.get('/add/task/')
+                        var viewAssignment = $(this).is('#add-view-assignment'),
+                            $modal = viewAssignment ? $('#createViewAssignmentModal') : $("#createAssignmentModal"),
+                            $btn = $(this);
+                        $.get($btn.attr('href'))
                             .done(function(data) {
                                 $modal.find('.modal-body')
                                         .html(data).end()
@@ -219,22 +232,6 @@ jQuery(document).ready(function() {
                         return false;
                      })
                      .end()
-                 .find('#add-view-assignment')
-                    .click(function() {
-                        var $modal = $('#createViewAssignmentModal'),
-                            $btn = $(this);
-                        $.get($btn.attr('href'))
-                            .done(function(data) {
-                                $modal.find('.modal-body')
-                                        .html(data).end()
-                                    .create_assignment_setup($modal)
-                                    .modal({
-                                        backdrop: true,
-                                        keyboard: true,
-                                        show: false
-                                    }).modal('show');
-                            });
-                    }).end()
                  .find('#auth-box').each(function() {
                     var $box = $(this),
                         $modal = $('#login-modal');

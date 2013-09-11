@@ -144,7 +144,7 @@ def assign_assignment(request, obj):
         if username:
             user = User.objects.get(username=username)
         else:
-            user = request.user
+            user = None
     except User.DoesNotExist:
         messages.danger(request, "Could not assign task to {}, no such user exists.".format(username));
         return JsonResponse(make_failure("No user named {}".format(username)))
@@ -197,10 +197,17 @@ class AssignmentViewList(HabMixin, DetailView):
     def get_context_data(self, *a, **kw):
         cx = super(AssignmentViewList, self).get_context_data(*a, **kw)
         q = Assignment.objects.filter(template=self.get_object().template)
+        q = q.extra(select={
+                'deadline_is_null': 'deadline IS NULL',
+                'i_own': 'owner_id IS '+str(self.request.user.id),
+                'mine': 'assignee_id IS '+str(self.request.user.id),
+            },
+            order_by=['-mine', '-i_own', 'deadline_is_null', 'deadline', 'importance'])
         q = q.filter(cleared=False)
         q = q.filter(Q(assignee__isnull=True)|Q(assignee=self.request.user))
         cx['assignments'] = q.all()
         cx['slug'] = self.kwargs['slug']
+        cx['users'] = User.objects.all()
         return cx
 
 
@@ -208,7 +215,16 @@ class AssignmentsList(LoginRequiredMixin, HabMixin, ListView):
     model = Assignment
 
     def get_queryset(self, *a, **kw):
+        sort_order = ['-mine', '-i_own', '-importance', 'deadline_is_null', 'deadline']
+        if self.request.GET.get('sort', 'importance') == 'deadline':
+            sort_order = ['-mine', '-i_own', 'deadline_is_null', 'deadline']
         q = super(AssignmentsList, self).get_queryset(*a, **kw).filter(cleared=False)
+        q = q.extra(select={
+                'deadline_is_null': 'deadline IS NULL',
+                'i_own': 'owner_id IS '+str(self.request.user.id),
+                'mine': 'assignee_id IS '+str(self.request.user.id),
+            },
+            order_by=sort_order)
         limit = self.request.GET.get('q')
         owner = self.request.GET.get('owner')
         if owner:
@@ -283,6 +299,7 @@ class CreateAssignmentView(LoggedInAjaxRequiredMixin, FormView):
     def form_valid(self, form):
         data = form.cleaned_data
         verb, new_verb = Verb.objects.get_or_create(name=unicode(data['verb']).lower())
+        subject = data['subject'].lower()
         if data['deadline']:
             deadline = timezone.now() + parse_deadline(data['deadline']) 
         else:
@@ -290,7 +307,7 @@ class CreateAssignmentView(LoggedInAjaxRequiredMixin, FormView):
         if data.get('repeat', False):
             template = AssignmentTemplate(
                 verb=verb,
-                subject=data['subject'],
+                subject=subject,
                 importance=data['importance'],
                 delay=parse_deadline(data['repeat_delay']).days,
                 deadline=parse_deadline(data['deadline']).days,
@@ -302,7 +319,7 @@ class CreateAssignmentView(LoggedInAjaxRequiredMixin, FormView):
             template = None
         ass = Assignment(
             verb=verb,
-            subject=data['subject'],
+            subject=subject,
             owner=User.objects.get(username=data['owner']) if data['owner'] else None,
             importance=data['importance'],
             deadline=deadline,
@@ -340,7 +357,7 @@ class CreateViewAssignmentView(LoggedInAjaxRequiredMixin, FormView):
             deadline = None
         ass = Assignment(
             verb=verb,
-            subject=data['subject'],
+            subject=data['subject'].lower(),
             owner=self.request.user,
             importance=data['importance'],
             deadline=deadline,

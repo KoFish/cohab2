@@ -41,3 +41,29 @@ function slugify(s) {
         }
     }
 })(window);
+
+function query_get(key) {
+    var re = RegExp('[\&?]' + key + '(?:\=([^\&]+)|\&|$)'),
+        m = location.search.match(re);
+    if (m) {
+        return (m[1] ? unescape(m[1]) : true);
+    } else {
+        return false
+    }
+}
+
+function query_replace(key, value) {
+    var re = RegExp('([\&?])(' + key + ')=([^\&]+)'),
+        org = location.search;
+    if (org.search(re) >= 0) {
+        return org.replace(re, (value ? ('$1$2=' + escape(value)) : '$1$2'));
+    } else {
+        return ((org.length > 0) ? org + '&' : '?') + key + (value ? ('=' + escape(value)) : '');
+    }
+}
+
+function query_remove(key) {
+    var re = RegExp('([\&]|^)(' + key + '=)([^\&]+)'),
+        org = location.search.slice(1);
+    return '?' + org.replace(re, '').replace(/^\&|\&^/, '');
+}

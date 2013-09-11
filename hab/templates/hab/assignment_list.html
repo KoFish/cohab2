@@ -1,23 +1,33 @@
 {% extends "hab/base.html" %}
+{% load querymod %}
 
 {% block title %}Assignments{% endblock %}
 
 {% block header %}<h1>Assignments</h1>{% endblock %}
 
 {% block sidebar %}
-<button id="add-assignment" type="button" class="btn">Add new assignment</button>
-<h4>Show assignments</h4>
-<ul class="list-group">
-    <li class="list-group-item"><a href="{% url "assignments-list" %}">All</a></li>
-    {% for verb in verbs %}
-    <li class="list-group-item" id="task-link-{{ verb.name|slugify }}"><a href="/tasks/?q={{ verb.name }}">{{ verb.name|title }} {% if verb.count %}<span class="badge">{{ verb.count }}</span>{% endif %}</a></li>
-    {% endfor %}
+<button id="add-assignment" href="{% url "add-assignment" %}" type="button" class="btn">Add new assignment</button>
+<h4>Sort by</h4>
+<ul>
+<li><a href="?{% query_replace 'sort' 'deadline' %}">Deadline</a></li>
+<li><a href="?{% query_replace 'sort' 'importance' %}">Importance</a></li>
 </ul>
+<div class="hidden-sm hidden-xs">
+    <h4>Show assignments</h4>
+    <ul id="task-filter" class="list-group">
+        <li class="list-group-item"><a href="{% url "assignments-list" %}">All</a></li>
+        {% for verb in verbs %}
+        <li class="list-group-item" id="task-link-{{ verb.name|slugify }}" data-sort="{{ verb.count }}"><a href="/tasks/?q={{ verb.name }}">{{ verb.name|title }} {% if verb.count %}<span class="badge">{{ verb.count }}</span>{% endif %}</a></li>
+        {% endfor %}
+    </ul>
+</div>
 {% endblock %}
 
 {% block content %}
 {% for assignment in object_list %}
     {% include "hab/assignment_detail.html" %}
+{% empty %}
+    <h4>No assignments to show</h4>
 {% endfor %}
 {% endblock %}
 

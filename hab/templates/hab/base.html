@@ -50,7 +50,7 @@
     </div>
     {% block scripts %}
     <script id="task-link" type="text/template">
-        <li class="list-group-item" id="task-link-<% print(slugify(verb)) %>"><a href="/tasks/?q=<%= verb %>"><%= verb[0].toUpperCase() + verb.slice(1) %><% if (count > 0) { %> <span class="badge"><%= count %></span><% } %></a></li>
+        <li class="list-group-item" id="task-link-<% print(slugify(verb)) %>" data-sort="<%= count %>"><a href="/tasks/?q=<%= verb %>"><%= verb[0].toUpperCase() + verb.slice(1) %><% if (count > 0) { %> <span class="badge"><%= count %></span><% } %></a></li>
     </script>
     {% endblock %}
     {% endif %}
