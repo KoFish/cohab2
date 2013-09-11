@@ -200,8 +200,8 @@ class AssignmentViewList(HabMixin, DetailView):
         q = Assignment.objects.filter(template=self.get_object().template)
         q = q.extra(select={
                 'deadline_is_null': 'deadline IS NULL',
-                'i_own': 'owner_id IS '+str(self.request.user.id),
-                'mine': 'assignee_id IS '+str(self.request.user.id),
+                'i_own': 'owner_id = \''+str(self.request.user.id)+'\'',
+                'mine': 'assignee_id = \''+str(self.request.user.id)+'\'',
             },
             order_by=['-mine', '-i_own', 'deadline_is_null', 'deadline', 'importance'])
         q = q.filter(cleared=False)
@@ -222,8 +222,8 @@ class AssignmentsList(LoginRequiredMixin, HabMixin, ListView):
         q = super(AssignmentsList, self).get_queryset(*a, **kw).filter(cleared=False)
         q = q.extra(select={
                 'deadline_is_null': 'deadline IS NULL',
-                'i_own': 'owner_id IS '+str(self.request.user.id),
-                'mine': 'assignee_id IS '+str(self.request.user.id),
+                'i_own': 'owner_id = \''+str(self.request.user.id)+'\'',
+                'mine': 'assignee_id = \''+str(self.request.user.id)+'\'',
             },
             order_by=sort_order)
         limit = self.request.GET.get('q')
