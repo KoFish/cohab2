@@ -50,7 +50,7 @@ def ajax_object_action(model):
                 try:
                     obj = model.objects.get(pk=pk)
                 except model.DoesNotExist:
-                    return JsonResponse(make_failure(_('No {name} with that id ({pk})').format(name=str(model.__name__), pk=pk)))
+                    return JsonResponse(make_failure(_('No {name} with that id ({pk})').format(name=__(str(model.__name__)), pk=pk)))
                 else:
                     return f(request, obj, *a, **kw)
             else:

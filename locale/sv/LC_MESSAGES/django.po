@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2013-09-11 16:43+0200\n"
+"POT-Creation-Date: 2013-09-11 17:16+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,6 +17,22 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: cohab/settings.py:46
+msgid "Swedish"
+msgstr "Svenska"
+
+#: cohab/settings.py:47
+msgid "English"
+msgstr "Engelska"
+
+#: hab/forms.py:11 hab/forms.py:24
+msgid "Deadline in number of days from today"
+msgstr "Antalet dagar från idag till deadline"
+
+#: hab/forms.py:14
+msgid "Number of days between creating new assignments"
+msgstr "Antalet dagar mellan att nya uppgifter av den här sorten skapas automatiskt"
 
 #: hab/views.py:53
 #, python-brace-format
@@ -269,3 +285,30 @@ msgstr "Cohab"
 #: templates/base.html:6
 msgid "Cohabitation tool"
 msgstr "Sambo verktyget"
+
+#~ msgid "verb"
+#~ msgstr "verb"
+
+#~ msgid "subject"
+#~ msgstr "subjekt"
+
+#~ msgid "owner"
+#~ msgstr "ägare"
+
+#~ msgid "importance"
+#~ msgstr "viktighet"
+
+#~ msgid "deadline"
+#~ msgstr "deadline"
+
+#~ msgid "mine"
+#~ msgstr "min"
+
+#~ msgid "repeat"
+#~ msgstr "repetera"
+
+#~ msgid "repeat delay"
+#~ msgstr "repetetions fördröjning"
+
+#~ msgid "allowed owners"
+#~ msgstr "tillåtna ägare"
