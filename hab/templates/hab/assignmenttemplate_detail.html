@@ -1,24 +1,25 @@
+{% load i18n %}
 <article class="template" id="template-{{ template.id }}" data-id="{{ template.id }}">
     <header>
         <h4>{{ template }}</h4>
     </header>
     <p class="controls">
-        <button type="button" class="add btn btn-primary btn-xs"{% if template.active %} disabled="disabled"{% endif %}>Add</button>
-        <button type="button" class="remove btn btn-danger btn-xs">Remove template</button>
+        <button type="button" class="add btn btn-primary btn-xs"{% if template.active %} disabled="disabled"{% endif %}>{% trans "Add" %}</button>
+        <button type="button" class="remove btn btn-danger btn-xs">{% trans "Remove template" %}</button>
     </p>
     <dl class="details dl-horizontal hide">
-        <dt>Allowed owners</dt> <dd>
+        <dt>{% trans "Allowed owners" %}</dt> <dd>
             <ul>
             {% for u in template.owners.all %}
                 <li>{{ u.username }}</li>
             {% endfor %}
             </ul>
         </dd>
-        <dt>Importance</dt> <dd>{{ template.importance }}</dd>
-        <dt>Delay</dt> <dd>{{ template.delay }}</dd>
-        <dt>Deadline</dt> <dd>{{ template.deadline }}</dd>
+        <dt>{% trans "Importance" %}</dt> <dd>{{ template.importance }}</dd>
+        <dt>{% trans "Delay" %}</dt> <dd>{{ template.delay }}</dd>
+        <dt>{% trans "Deadline" %}</dt> <dd>{{ template.deadline }}</dd>
         {% if template.days_left %}
-        <dt>Days left</dt> <dd>{{ template.days_left }}</dd>
+        <dt>{% trans "Days left" %}</dt> <dd>{{ template.days_left }}</dd>
         {% endif %}
     </dl>
 </article>

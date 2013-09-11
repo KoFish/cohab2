@@ -1,11 +1,12 @@
 {% extends "hab/base.html" %}
+{% load i18n %}
 
 {% block title %}View{% endblock %}
 
-{% block header %}<h1>View</h1>{% endblock %}
+{% block header %}<h1>{% trans "View" %}</h1>{% endblock %}
 
 {% block sidebar %}
-<button id="add-view-assignment" href="{% url 'assignment-view-add' slug=slug %}" type="button" class="btn">Add new assignment</button>
+<button id="add-view-assignment" href="{% url 'assignment-view-add' slug=slug %}" type="button" class="btn">{% trans "Add new assignment" %}</button>
 {% endblock %}
 
 {% block content %}

@@ -1,14 +1,14 @@
-{% load bootstrap %}
+{% load bootstrap %}{% load i18n %}
 <form class="form" role="form" method="POST" action="{% if form_url %}{{ form_url }}{% else %}{% url "add-assignment" %}{% endif %}">
     {% csrf_token %}
     <div class="form-group" style="display: inline-block">
-        <label for="id_verb" class="control-label">Verb</label>
+        <label for="id_verb" class="control-label">{% trans "Verb" %}</label>
         <div>
             <input type="text" name="verb" maxlength="50" class="form-control" id="id_verb">
         </div>
     </div>
     <div class="form-group" style="display: inline-block">
-        <label for="id_subject" class="control-label">Subject</label>
+        <label for="id_subject" class="control-label">{% trans "Subject" %}</label>
         <div>
             <input type="text" name="subject" maxlength="50" class="form-control" id="id_subject">
         </div>
@@ -22,6 +22,6 @@
     {{ form.allowed_owners|bootstrap }}
     </fieldset>
     {{ form.mine|bootstrap }}
-    <button type="reset" class="btn btn-default">Cancel</button>
-    <button type="submit" class="btn btn-primary">Create assignment</button>
+    <button type="reset" class="btn btn-default">{% trans "Cancel" %}</button>
+    <button type="submit" class="btn btn-primary">{% trans "Create assignment" %}</button>
 </form>

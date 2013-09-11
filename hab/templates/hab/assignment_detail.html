@@ -1,4 +1,4 @@
-{% load mathfilters %}<article class="assignment" id="assignment-{{ assignment.id }}" data-id="{{ assignment.id }}">
+{% load i18n %}{% load mathfilters %}<article class="assignment" id="assignment-{{ assignment.id }}" data-id="{{ assignment.id }}">
     <header>
         {% if assignment.assignee %}
             {% ifequal assignment.assignee user %}
@@ -15,34 +15,34 @@
         <h4>{{ assignment }} <span class="grade">{{ assignment.importance }}</span>
             {% ifnotequal countdown None %}
                 {% if countdown > 0 %}
-                    <small>{{ countdown }} day{{ countdown|pluralize }} left</small>
+                    <small>{% blocktrans count countdown=countdown %}Tomorrow{% plural %}{{ countdown }} days left{% endblocktrans %}</small>
                 {% else %}
                     {% if countdown < 0 %}
-                        <small class="text-danger">{{ countdown|abs }} day{{ countdown|abs|pluralize }} overdue.</small>
+                        <small class="text-danger">{% blocktrans count cdabs=countdown|abs %}Yesterday{% plural %}{{ cdabs }} days overdue.{% endblocktrans %}</small>
                     {% else %}
-                        <small class="text-info">Today</small>
+                        <small class="text-info">{% trans "Today" %}</small>
                     {% endif %}
                 {% endif %}
             {% endifnotequal %}
             {% if assignment.assigned_to %}
-                <small class="assignee">Assigned to {% include "hab/user_link.html" with user=assignment.assigned_to %}</small>
+                <small class="assignee">{% blocktrans %}Assigned to {% endblocktrans %}{% include "hab/user_link.html" with user=assignment.assigned_to %}</small>
             {% endif %}
         </h4>
         {% endwith %}
     </header>
     <p class="controls">
         {% if assignment.completed %}
-        <button type="button" class="clear btn btn-xs">Clear</button>
+        <button type="button" class="clear btn btn-xs">{% trans "Clear" %}</button>
         {% else %}
-        <button type="button" class="finish btn btn-success btn-xs">Finish</button>
+        <button type="button" class="finish btn btn-success btn-xs">{% trans "Finish" %}</button>
         {% endif %}
     </p>
     <dl class="details hide dl-horizontal">
-        <dt>Owned by</dt> <dd class="owner">{{ assignment.owner|default:"None" }}</dd>
-        <dt>Assigned to</dt> <dd class="assignee">{{ assignment.assignee|default:"None" }}</dd>
+        <dt>{% trans "Owned by" %}</dt> <dd class="owner">{{ assignment.owner|default:"None" }}</dd>
+        <dt>{% trans "Assigned to" %}</dt> <dd class="assignee">{{ assignment.assignee|default:"None" }}</dd>
 
         {% if not assignment.completed %}
-        <dt>Assign task to</dt>
+        <dt>{% trans "Assign task to" %}</dt>
         <dd>
             <select name="assign" id="assign-{{ assignment.id }}" class="assign-task">
                 <option value="no">---</option>
@@ -53,24 +53,24 @@
         </dd>
         {% endif %}
 
-        <dt>Importance</dt> <dd><span class="grade">{{ assignment.importance }}</span></dd>
+        <dt>{% trans "Importance" %}</dt> <dd><span class="grade">{{ assignment.importance }}</span></dd>
         {% if assignment.completed %}
-        <dt>Completed</dt> <dd><time datetime="{{ assignment.completed|date:'c' }}">{{ assignment.completed }}</time></dd>
+        <dt>{% trans "Completed" %}</dt> <dd><time datetime="{{ assignment.completed|date:'c' }}">{{ assignment.completed }}</time></dd>
         {% if not assignment.cleared %}
         {% endif %}
-        <dt>Reopen</dt> <dd><button type="button" class="reopen btn btn-xs" href="#">Reopen</button></dd>
+        <dt>{% trans "Reopen" %}</dt> <dd><button type="button" class="reopen btn btn-xs" href="#">{% trans "Reopen" %}</button></dd>
         {% else %}
         {% if assignment.deadline %}
-        <dt>Deadline</dt> <dd><time class="deadline" datetime="{{ assignment.deadline|date:'c' }}">{{ assignment.deadline }}</time></dd>
-        <dt>Suspend</dt>
+        <dt>{% trans "Deadline" %}</dt> <dd><time class="deadline" datetime="{{ assignment.deadline|date:'c' }}">{{ assignment.deadline }}</time></dd>
+        <dt>{% trans "Suspend" %}</dt>
         <dd>
             <select name="suspend" id="suspend-{{ assignment.id }}" class="suspend-task">
                 <option value="0"></option>
-                <option value="1">1 day</option>
-                <option value="2">2 day</option>
-                <option value="3">3 day</option>
-                <option value="7">1 week</option>
-                <option value="30">1 month</option>
+                <option value="1">{% trans "1 day" %}</option>
+                <option value="2">{% trans "2 day" %}</option>
+                <option value="3">{% trans "3 day" %}</option>
+                <option value="7">{% trans "1 week" %}</option>
+                <option value="30">{% trans "1 month" %}</option>
             </select>
         </dd>
         {% endif %}

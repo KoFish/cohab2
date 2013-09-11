@@ -19,6 +19,7 @@ from django.db.models.query import QuerySet
 from django.core.serializers import json as json_serializer, serialize
 from django.shortcuts import render_to_response
 from django.template import RequestContext
+from django.utils.translation import ugettext as _, ugettext_lazy as __
 
 def make_status(status, **kw):
     d = {'status': status}
@@ -49,11 +50,11 @@ def ajax_object_action(model):
                 try:
                     obj = model.objects.get(pk=pk)
                 except model.DoesNotExist:
-                    return JsonResponse(make_failure('No {} with that id ({})'.format(str(model.__name__), pk)))
+                    return JsonResponse(make_failure(_('No {name} with that id ({pk})').format(name=str(model.__name__), pk=pk)))
                 else:
                     return f(request, obj, *a, **kw)
             else:
-                raise Http404('This action is not available by GET')
+                raise Http404(_('This action is not available by GET'))
         return inner
     return outer
 
@@ -65,7 +66,7 @@ class RootView(RedirectView):
 
 def get(request, key):
     if not (request.is_ajax() or 'ajax' in request.GET):
-        raise Http404('This url has no meaning unless fetched by ajax')
+        raise Http404(_('This url has no meaning unless fetched by ajax'))
 
     def get_messages(request):
         msgs = []
@@ -101,7 +102,7 @@ def get(request, key):
         res = cmds[key](request)
         return JsonResponse(make_success(**res))
     else:
-        return JsonResponse(make_failure('No such value.'))
+        return JsonResponse(make_failure(_('No such value.')))
 
 
 @csrf_exempt
@@ -109,7 +110,7 @@ def get(request, key):
 @ajax_object_action(Assignment)
 def complete_assignment(request, obj):
     obj.complete(request)
-    messages.info(request, 'Completed assignment {}'.format(obj))
+    messages.info(request, _('Completed assignment {}').format(obj))
     return JsonResponse(make_success())
 
 
@@ -127,7 +128,7 @@ def clear_assignment(request, obj):
 @ajax_object_action(Assignment)
 def reopen_assignment(request, obj):
     if obj.cleared:
-        return JsonResponse(make_failure('Not allowed to reopen cleared task'))
+        return JsonResponse(make_failure(_('Not allowed to reopen cleared task')))
     else:
         obj.completed = None
         obj.save()
@@ -146,7 +147,7 @@ def assign_assignment(request, obj):
         else:
             user = None
     except User.DoesNotExist:
-        messages.danger(request, "Could not assign task to {}, no such user exists.".format(username));
+        messages.danger(request, _("Could not assign task to {}, no such user exists.").format(username));
         return JsonResponse(make_failure("No user named {}".format(username)))
     else:
         obj.assignee = user
@@ -166,7 +167,7 @@ def suspend_assignment(request, obj):
         print obj
         return JsonResponse(make_success(deadline=obj.deadline.strftime('%c'), days_left="{} days left".format(obj.countdown())));
     except ValueError:
-        return JsonResponse(make_failure('{} is not an integer'.format(request.GET.get('days'))))
+        return JsonResponse(make_failure(_('{} is not an integer').format(request.GET.get('days'))))
 
 
 @csrf_exempt
@@ -283,8 +284,8 @@ class LoggedInAjaxRequiredMixin(object):
             if request.user.is_authenticated():
                 return super(LoggedInAjaxRequiredMixin, self).dispatch(request, *a, **kw)
             else:
-                return JsonResponse(make_failure('You have to be logged in.'))
-        raise Http404("You aren't allowed to fetch this without ajax.")
+                return JsonResponse(make_failure(_('You have to be logged in.')))
+        raise Http404(_("You aren't allowed to fetch this without ajax."))
 
 
 class CreateAssignmentView(LoggedInAjaxRequiredMixin, FormView):
@@ -330,7 +331,7 @@ class CreateAssignmentView(LoggedInAjaxRequiredMixin, FormView):
         return JsonResponse(make_success())
 
     def form_invalid(self, form):
-        return JsonResponse(make_failure('Errors in form', errors=form.errors))
+        return JsonResponse(make_failure(_('Errors in form'), errors=form.errors))
 
     def get_success_url(self):
         return reverse('assignments-list')
@@ -368,7 +369,7 @@ class CreateViewAssignmentView(LoggedInAjaxRequiredMixin, FormView):
         return JsonResponse(make_success())
 
     def form_invalid(self, form):
-        return JsonResponse(make_failure('Errors in form', errors=form.errors))
+        return JsonResponse(make_failure(_('Errors in form'), errors=form.errors))
 
     def get_success_url(self):
         return reverse('assignments-list')

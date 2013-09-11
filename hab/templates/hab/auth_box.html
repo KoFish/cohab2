@@ -1,8 +1,9 @@
+{% load i18n %}
 <div id="auth-box">
     {% if request.user.is_authenticated %}
-    Logged in as <a href="{% url "assignments-list" %}?owner={{ user.username }}">{{ user.username }}</a>
-    <button type="button" class="logout btn btn-xs">Logout</button>
+    {% trans "Logged in as " %}<a href="{% url "assignments-list" %}?owner={{ user.username }}">{{ user.username }}</a>
+    <button type="button" class="logout btn btn-xs">{% trans "Logout" %}</button>
     {% else %}
-    <button type="button" class="login btn btn-xs">Login</button>
+    <button type="button" class="login btn btn-xs">{% trans "Login" %}</button>
     {% endif %}
 </div>
