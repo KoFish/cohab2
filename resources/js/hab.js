@@ -102,14 +102,18 @@ jQuery(document).ready(function() {
                     $.post($form.attr('action'), $form.serialize())
                         .done(function(data) {
                             if (data.status === 'success') {
-                                var newverb = $form.find('#id_verb').val().toLowerCase(),
-                                    oldverb = query_get('q');
-
                                 $modal.find('.modal-body').html('');
                                 $modal.modal('hide');
 
-                                if (query_get('q') && (newverb !== oldverb)) {
-                                    window.location.href = window.location.pathname + query_replace('q', newverb);
+                                if ($form.find('#id_verb').length > 0) {
+                                    var newverb = $form.find('#id_verb').val().toLowerCase(),
+                                        oldverb = query_get('q');
+
+                                    if (query_get('q') && (newverb !== oldverb)) {
+                                        window.location.href = window.location.pathname + query_replace('q', newverb);
+                                    } else {
+                                        $.reload();
+                                    }
                                 } else {
                                     $.reload();
                                 }
